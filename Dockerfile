@@ -1,31 +1,31 @@
-FROM continuumio/miniconda3:latest
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 WORKDIR /app
+# 设置非交互式前端，防止安装过程中的提示
+ENV DEBIAN_FRONTEND=noninteractive
+# Install git and git-lfs (for model download)
+RUN apt-get update && apt-get install -y \
+    git \
+    git-lfs \
+    ffmpeg \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 安装依赖 - 合并多个RUN命令减少层数
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git-lfs ffmpeg && \
-    git lfs install && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p pretrained_models
+# Install git-lfs
+RUN git lfs install
 
-# 创建conda环境并安装依赖 - 合并相关命令
+# Copy requirements file
 COPY requirements.txt .
-RUN conda create -n sparktts python=3.12 -y && \
-    /opt/conda/bin/activate sparktts && \
-    pip install -r requirements.txt && \
-    python -c "from huggingface_hub import snapshot_download; snapshot_download('SparkAudio/Spark-TTS-0.5B', local_dir='pretrained_models/Spark-TTS-0.5B')"
 
-# 配置shell和环境激活
-SHELL ["/bin/bash", "--login", "-c"]
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 拷贝应用代码 - 放在依赖安装后以利用缓存
+# Download the model (you can either do this here or mount it as a volume)
+RUN mkdir -p pretrained_models && \
+    git clone https://huggingface.co/SparkAudio/Spark-TTS-0.5B pretrained_models/Spark-TTS-0.5B
+
+# Copy code
 COPY . .
 
-# 暴露端口
-EXPOSE 2333
-
-# 启动命令
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source /opt/conda/etc/profile.d/conda.sh && conda activate sparktts && python app.py"]
+# Set CMD to run the handler
+CMD ["python", "handler.py"]
