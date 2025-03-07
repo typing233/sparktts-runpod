@@ -6,11 +6,9 @@ from pydantic import BaseModel
 import os
 import torch
 import soundfile as sf
-from scipy.io import wavfile
 import logging
 import traceback
 from datetime import datetime
-import numpy as np
 from cli.SparkTTS import SparkTTS
 from sparktts.utils.token_parser import LEVELS_MAP_UI
 
@@ -26,7 +24,7 @@ def initialize_model(model_dir="pretrained_models/Spark-TTS-0.5B", device=0):
 
 def run_tts(
     text,
-    model,
+    model:SparkTTS,
     prompt_text=None,
     prompt_speech=None,
     gender=None,
@@ -209,24 +207,6 @@ async def voice_creation(data: create_data, background_tasks: BackgroundTasks):
             filename=os.path.basename(audio_output_path)
         )
         
-        # Define custom callback to clean up the file after sending response
-        def cleanup_temp_files(file_path=audio_output_path, directory=temp_dir):
-            try:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                    logging.info(f"Temporary file {file_path} removed successfully")
-                if directory and os.path.exists(directory):
-                    os.rmdir(directory)
-                    logging.info(f"Temporary directory {directory} removed successfully")
-            except Exception as e:
-                logging.error(f"Error cleaning up temporary files: {e}")
-        
-        # Return the audio file directly
-        return FileResponse(
-            path=audio_output_path, 
-            media_type=f"audio/{os.path.splitext(audio_output_path)[1][1:]}",
-            filename=os.path.basename(audio_output_path)
-        )
     except Exception as e:
         # Clean up files if an error occurs
         if temp_dir and os.path.exists(temp_dir):
@@ -264,9 +244,6 @@ async def health_check():
     try:
         # Basic check if model is loaded
         model_status = "loaded" if model is not None else "not loaded"
-        
-        # Check LEVELS_MAP_UI structure
-        levels_status = "accessible" if LEVELS_MAP_UI is not None else "not accessible"
         
         # Check LEVELS_MAP in SparkTTS
         from cli.SparkTTS import LEVELS_MAP
