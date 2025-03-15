@@ -1,0 +1,11 @@
+{
+    "id": "test-job-12345",
+    "input": {
+      "endpoint": "voice_creation",
+      "text": "Hello, this is a test of the SparkTTS system on RunPod.",
+      "gender": "female",
+      "pitch": 3,
+      "speed": 3,
+      "output_format": "mp3"
+    }
+}

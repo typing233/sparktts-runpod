@@ -195,34 +195,39 @@ if __name__ == "__main__":
     # Setup for local testing
     import sys
     import json
-    
-    if "--test_input" in sys.argv:
-        test_input_index = sys.argv.index("--test_input")
-        if test_input_index + 1 < len(sys.argv):
-            test_input_json = sys.argv[test_input_index + 1]
-            try:
-                job = json.loads(test_input_json)
-                result = handler(job)
-                print(json.dumps({"output": result}))
+    runpod.serverless.start({
+        "handler": handler,
+        # Uncomment for generator-style streaming
+        # "handler": generator_handler
+        
+    })
+    # if "--test_input" in sys.argv:
+    #     test_input_index = sys.argv.index("--test_input")
+    #     if test_input_index + 1 < len(sys.argv):
+    #         test_input_json = sys.argv[test_input_index + 1]
+    #         try:
+    #             job = json.loads(test_input_json)
+    #             result = handler(job)
+    #             print(json.dumps({"output": result}))
                 
-                # 如果指定了保存选项，显示保存路径提示
-                if "--save_output" in sys.argv:
-                    print("\n音频文件已保存，请检查上面的日志获取保存路径。")
-            except json.JSONDecodeError:
-                print("Error: Invalid JSON in test_input")
-        else:
-            print("Error: --test_input requires a JSON string argument")
-    elif "--rp_serve_api" in sys.argv:
-        # Start the serverless API service for local testing
-        runpod.serverless.start({
-            "handler": handler,
-            # Uncomment for generator-style streaming
-            # "handler": generator_handler
-        })
-    else:
-        # Start the serverless handler for deployment
-        runpod.serverless.start({
-            "handler": handler,
-            # Uncomment for generator-style streaming
-            # "handler": generator_handler
-        })
+    #             # 如果指定了保存选项，显示保存路径提示
+    #             if "--save_output" in sys.argv:
+    #                 print("\n音频文件已保存，请检查上面的日志获取保存路径。")
+    #         except json.JSONDecodeError:
+    #             print("Error: Invalid JSON in test_input")
+    #     else:
+    #         print("Error: --test_input requires a JSON string argument")
+    # elif "--rp_serve_api" in sys.argv:
+    #     # Start the serverless API service for local testing
+    #     runpod.serverless.start({
+    #         "handler": handler,
+    #         # Uncomment for generator-style streaming
+    #         # "handler": generator_handler
+    #     })
+    # else:
+    #     # Start the serverless handler for deployment
+    #     runpod.serverless.start({
+    #         "handler": handler,
+    #         # Uncomment for generator-style streaming
+    #         # "handler": generator_handler
+    #     })
